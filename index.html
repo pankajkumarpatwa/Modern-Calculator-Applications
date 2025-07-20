@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Calculator</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the calculator */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent; /* Removes blue highlight on mobile tap */
+            /* Added a background image */
+            background-image: url('https://t3.ftcdn.net/jpg/05/35/47/38/240_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-attachment: fixed;
+            background-blend-mode:darken;
+        }
+    
+        .calculator-body {
+            width: 100%;
+            max-width: 375px; /* Typical phone width */
+            height: 85vh;
+            max-height: 812px; /* Typical phone height */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            /* --- Glassmorphism Effect --- */
+            background-color: rgba(17, 24, 39, 0.65); /* semi-transparent bg-gray-900 */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); /* For Safari browser compatibility */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border to define the edge */
+        }
+        /* Style for the scientific keypad panel */
+        .scientific-keypad {
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .scientific-keypad.visible {
+            transform: translateY(0);
+        }
+        /* Custom active state for better touch feedback */
+        .btn:active {
+            transform: scale(0.95);
+            filter: brightness(1.2);
+        }
+        .btn:hover {
+            filter: brightness(1.5);
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            /* --- Glassmorphism Effect --- */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); /* For Safari browser compatibility */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border to define the edge */
+            background-color: rgba(174, 100, 100, 0.1); /* Semi-transparent white */
+            color: white;
+            transition: all 0.5s ease-in-out;
+        }
+
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <!-- Main Calculator Body -->
+    <div class="calculator-body text-white rounded-3xl overflow-hidden flex flex-col relative">
+
+        <!-- Display Screen -->
+        <div id="display" class="p-8 pb-4 flex flex-col justify-end items-end h-1/3">
+            <div id="history" class="text-gray-500 text-xl h-8 overflow-hidden"></div>
+            <div id="expression" class="text-gray-400 text-2xl h-10 overflow-hidden text-right w-full"></div>
+            <div id="result" class="text-white text-6xl font-bold truncate">0</div>
+        </div>
+
+        <!-- Keypads Container -->
+        <div class="flex-1 flex flex-col relative">
+            <!-- Basic Keypad -->
+            <div class="grid grid-cols-4 gap-3 p-5 flex-1">
+                <!-- Row 1 -->
+                <button data-key="AC" class="btn bg-gray-700 text-2xl font-medium rounded-2xl transition-all">AC</button>
+                <button data-key="%" class="btn bg-gray-700 text-2xl font-medium rounded-2xl transition-all">%</button>
+                <button data-key="/" class="btn bg-blue-500 text-3xl font-medium rounded-2xl transition-all">÷</button>
+                
+                <!-- Row 2 -->
+                <button data-key="7" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">7</button>
+                <button data-key="8" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">8</button>
+                <button data-key="9" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">9</button>
+                <button data-key="*" class="btn bg-blue-500 text-3xl font-medium rounded-2xl transition-all">×</button>
+                
+                <!-- Row 3 -->
+                <button data-key="4" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">4</button>
+                <button data-key="5" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">5</button>
+                <button data-key="6" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">6</button>
+                <button data-key="-" class="btn bg-blue-500 text-3xl font-medium rounded-2xl transition-all">−</button>
+                
+                <!-- Row 4 -->
+                <button data-key="1" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">1</button>
+                <button data-key="2" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">2</button>
+                <button data-key="3" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">3</button>
+                <button data-key="+" class="btn bg-blue-500 text-3xl font-medium rounded-2xl transition-all">+</button>
+                
+                <!-- Row 5 -->
+                <button id="toggle-scientific" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                    </svg>
+                </button>
+                <button data-key="0" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">0</button>
+                <button data-key="00" class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">00</button>
+                <button data-key="." class="btn bg-gray-800 text-2xl font-medium rounded-2xl transition-all">.</button>
+                <button data-key="=" class="btn bg-green-500 text-3xl font-medium rounded-2xl transition-all">=</button>
+            </div>
+            
+            <!-- Scientific Keypad (Initially hidden) -->
+            <div id="scientific-keypad" class="scientific-keypad absolute bottom-0 left-0 right-0 bg-teal-600 rounded-t-3xl p-5">
+                <div class="grid grid-cols-4 gap-3">
+                     <!-- Toggle down button -->
+                    <button id="toggle-scientific-down" class="btn col-span-4 mb-2 text-2xl font-medium rounded-2xl transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <!-- Row 1 -->
+                    <button data-key="inv" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">inv</button>
+                    <button data-key="rad" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">rad</button>
+                    <button data-key="sin" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">sin</button>
+                    <button data-key="cos" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">cos</button>
+                    
+                    <!-- Row 2 -->
+                    <button data-key="tan" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">tan</button>
+                    <button data-key="ln" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">ln</button>
+                    <button data-key="log" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">log</button>
+                    <button data-key="!" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">n!</button>
+
+                    <!-- Row 3 -->
+                    <button data-key="^" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">x^y</button>
+                    <button data-key="sqrt" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">√</button>
+                    <button data-key="(" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">(</button>
+                    <button data-key=")" class="btn bg-teal-700 text-xl font-medium rounded-2xl transition-all">)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const display = {
+                history: document.getElementById('history'),
+                expression: document.getElementById('expression'),
+                result: document.getElementById('result'),
+            };
+            const keypad = document.querySelector('.calculator-body');
+            const scientificKeypad = document.getElementById('scientific-keypad');
+            const toggleUpBtn = document.getElementById('toggle-scientific');
+            const toggleDownBtn = document.getElementById('toggle-scientific-down');
+
+            // Calculator State
+            let state = {
+                currentValue: '0',
+                expression: '',
+                history: '',
+                isResult: false, // Flag to check if the current value is a result of a calculation
+                angleMode: 'deg', // 'deg' or 'rad'
+                isInverse: false, // For inverse trigonometric functions
+            };
+
+            // --- Event Listeners ---
+
+            // Main event listener for all button clicks
+            keypad.addEventListener('click', (e) => {
+                if (e.target.matches('button')) {
+                    const key = e.target.dataset.key;
+                    handleKeyPress(key);
+                }
+            });
+            
+            // Toggle scientific keypad visibility
+            DELupBtn.addEventListener('click', () => scientificKeypad.classList.add('visible'));
+            DELDownBtn.addEventListener('click', () => scientificKeypad.classList.remove('visible'));
+
+            // --- Key Handling Logic ---
+
+            function handleKeyPress(key) {
+                if (!key) return;
+
+                // Categorize key and call appropriate handler
+                if (/\d/.test(key)) {
+                    handleNumber(key);
+                } else if (key === '.') {
+                    handleDecimal();
+                } else if (['+', '-', '*', '/'].includes(key)) {
+                    handleOperator(key);
+                } else if (key === '=') {
+                    handleEquals();
+                } else if (key === 'AC') {
+                    resetCalculator();
+                } else {
+                    handleFunction(key);
+                }
+                updateDisplay();
+            }
+
+            // --- Input Handlers ---
+
+            function handleNumber(key) {
+                if (state.isResult || state.currentValue === '0' || state.currentValue === 'Error') {
+                    state.currentValue = key;
+                    state.isResult = false;
+                } else {
+                    state.currentValue += key;
+                }
+            }
+
+            function handleDecimal() {
+                if (state.isResult) {
+                    state.currentValue = '0.';
+                    state.isResult = false;
+                } else if (!state.currentValue.includes('.')) {
+                    state.currentValue += '.';
+                }
+            }
+
+            function handleOperator(key) {
+                if (state.currentValue === 'Error') return;
+                
+                // If the last char in expression is an operator, replace it
+                const lastChar = state.expression.slice(-1);
+                if (['+', '-', '*', '/'].includes(lastChar)) {
+                    state.expression = state.expression.slice(0, -1) + key;
+                } else {
+                    state.expression += state.currentValue + key;
+                }
+                
+                state.currentValue = '0';
+                state.isResult = false;
+            }
+
+            function handleEquals() {
+                if (state.currentValue === 'Error') return;
+                
+                const fullExpression = (state.expression + state.currentValue).replace(/--/g, '+');
+                state.history = formatExpression(fullExpression) + ' =';
+                
+                try {
+                    const result = evaluateExpression(fullExpression);
+                    state.currentValue = String(result);
+                    state.expression = '';
+                    state.isResult = true;
+                } catch (error) {
+                    console.error(error);
+                    state.currentValue = 'Error';
+                    state.expression = '';
+                }
+            }
+
+            function handleFunction(key) {
+                 if (state.currentValue === 'Error') return;
+                switch (key) {
+                    case 'toggle-sign':
+                        if (state.currentValue !== '0') {
+                            state.currentValue = String(parseFloat(state.currentValue) * -1);
+                        }
+                        break;
+                    case '%':
+                        state.currentValue = String(parseFloat(state.currentValue) / 100);
+                        break;
+                    case 'rad':
+                        state.angleMode = state.angleMode === 'deg' ? 'rad' : 'deg';
+                        // Visual feedback for the button
+                        const radBtn = document.querySelector('button[data-key="rad"]');
+                        radBtn.textContent = state.angleMode === 'deg' ? 'rad' : 'deg';
+                        radBtn.classList.toggle('bg-teal-500');
+                        break;
+                    case 'inv':
+                        state.isInverse = !state.isInverse;
+                        // Visual feedback for the button
+                        const invBtn = document.querySelector('button[data-key="inv"]');
+                        invBtn.classList.toggle('bg-teal-500');
+                        break;
+                    // Scientific functions
+                    case 'sin':
+                    case 'cos':
+                    case 'tan':
+                        handleTrigFunction(key);
+                        break;
+                    case 'ln':
+                        state.currentValue = String(Math.log(parseFloat(state.currentValue)));
+                        break;
+                    case 'log':
+                        state.currentValue = String(Math.log10(parseFloat(state.currentValue)));
+                        break;
+                    case '!':
+                        state.currentValue = String(factorial(parseInt(state.currentValue)));
+                        break;
+                    case '^':
+                        handleOperator('**'); // Use JS exponentiation operator
+                        break;
+                    case 'sqrt':
+                        state.currentValue = String(Math.sqrt(parseFloat(state.currentValue)));
+                        break;
+                    case '(':
+                        state.expression += key;
+                        break;
+                    case ')':
+                        state.expression += state.currentValue + key;
+                        state.currentValue = '0';
+                        break;
+                }
+                 state.isResult = true;
+            }
+
+            function handleTrigFunction(func) {
+                let value = parseFloat(state.currentValue);
+                if (state.angleMode === 'deg') {
+                    value = value * (Math.PI / 180); // Convert to radians
+                }
+
+                let result;
+                if (state.isInverse) {
+                    switch (func) {
+                        case 'sin': result = Math.asin(value); break;
+                        case 'cos': result = Math.acos(value); break;
+                        case 'tan': result = Math.atan(value); break;
+                    }
+                } else {
+                     switch (func) {
+                        case 'sin': result = Math.sin(value); break;
+                        case 'cos': result = Math.cos(value); break;
+                        case 'tan': result = Math.tan(value); break;
+                    }
+                }
+                
+                // If result was in radians, convert back for display if in deg mode
+                if (state.isInverse && state.angleMode === 'deg') {
+                    result = result * (180 / Math.PI);
+                }
+
+                state.currentValue = String(result);
+            }
+
+            // --- Utility Functions ---
+
+            function resetCalculator() {
+                state.currentValue = '0';
+                state.expression = '';
+                state.history = '';
+                state.isResult = false;
+            }
+
+            function evaluateExpression(expression) {
+                // This is a safer way to evaluate than direct eval()
+                // It sanitizes the expression to only allow math-related characters
+                const sanitizedExpression = expression.replace(/[^-()\d/*+.]/g, '');
+                // Using Function constructor for safer evaluation
+                return new Function('return ' + sanitizedExpression)();
+            }
+
+            function factorial(n) {
+                if (n < 0) return 'Error';
+                if (n === 0 || n === 1) return 1;
+                let result = 1;
+                for (let i = n; i > 1; i--) {
+                    result *= i;
+                }
+                return result;
+            }
+            
+            function formatExpression(expr) {
+                return expr.replace(/\*/g, '×').replace(/\//g, '÷');
+            }
+
+            function updateDisplay() {
+                // Format the result for better readability
+                let formattedResult = state.currentValue;
+                if (formattedResult.length > 10 && formattedResult.includes('.')) {
+                     if (Math.abs(parseFloat(formattedResult)) > 1e10 || Math.abs(parseFloat(formattedResult)) < 1e-6 && parseFloat(formattedResult) !== 0) {
+                        formattedResult = parseFloat(formattedResult).toExponential(4);
+                     } else {
+                        formattedResult = parseFloat(formattedResult).toFixed(6);
+                     }
+                } else if (formattedResult.length > 12) {
+                    formattedResult = parseFloat(formattedResult).toExponential(4);
+                }
+
+                display.result.textContent = formattedResult;
+                display.expression.textContent = formatExpression(state.expression);
+                display.history.textContent = state.history;
+            }
+
+            // Initialize display on load
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
